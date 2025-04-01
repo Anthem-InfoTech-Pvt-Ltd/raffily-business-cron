@@ -35,12 +35,8 @@ const generateRaffleResultsEmail = (props) => {
     createNewRaffleUrl,
   } = props;
 
-  const hasGrowth = previousRaffleEntries !== undefined;
-  const growthPercentage = hasGrowth
-    ? Math.round(
-        ((totalEntries - previousRaffleEntries) / previousRaffleEntries) * 100
-      )
-    : 0;
+  const hasGrowth = true;
+  const growthPercentage = Math.round((totalEntries / viewsToEntryRate) * 100);
   const isPositiveGrowth = growthPercentage >= 0;
 
   return `
@@ -63,19 +59,10 @@ const generateRaffleResultsEmail = (props) => {
           <p style="margin: 0; color: #666666;">Total Entries</p>
         </div>
         <div style="flex: 1; text-align: center; padding: 16px; background-color: #ffffff; border: 1px solid #cccccc; border-radius: 8px;">
-          <p style="margin: 0; font-weight: bold; color: #28a745;">${viewsToEntryRate}%</p>
-          <p style="margin: 0; color: #666666;">Conversion Rate</p>
+          <p style="margin: 0; font-weight: bold; color: #28a745;">${viewsToEntryRate}</p>
+          <p style="margin: 0; color: #666666;">Raffle Entries</p>
         </div>
-        ${
-          hasGrowth
-            ? `<div style="flex: 1; text-align: center; padding: 16px; background-color: #ffffff; border: 1px solid #cccccc; border-radius: 8px;">
-                <p style="margin: 0; font-weight: bold; color: ${
-                  isPositiveGrowth ? "#28a745" : "#dc3545"
-                };">${isPositiveGrowth ? "+" : ""}${growthPercentage}%</p>
-                <p style="margin: 0; color: #666666;">Growth</p>
-              </div>`
-            : ""
-        }
+        
       </div>
 
       <div style="background-color: #ffffff; border: 1px solid #cccccc; padding: 24px; border-radius: 8px; margin-bottom: 24px;">
@@ -97,31 +84,7 @@ const generateRaffleResultsEmail = (props) => {
         <p style="font-size: 12px; text-align: center; margin: 16px 0 0 0;">The winner has been automatically notified via email.</p>
       </div>
 
-      <h3>Participant Demographics:</h3>
-      <div style="display: flex; gap: 16px; margin-bottom: 16px;">
-        <div style="flex: 1; background-color: #ffffff; border: 1px solid #cccccc; border-radius: 8px; padding: 16px;">
-          <p style="margin: 0 0 8px 0; font-weight: bold;">Top Location</p>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <p style="margin: 0;">${demographicData.topLocation}</p>
-            <p style="margin: 0; font-weight: bold; color: #007bff;">${
-              demographicData.topLocationPercentage
-            }%</p>
-          </div>
-        </div>
-        <div style="flex: 1; background-color: #ffffff; border: 1px solid #cccccc; border-radius: 8px; padding: 16px;">
-          <p style="margin: 0 0 8px 0; font-weight: bold;">Top Device</p>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <p style="margin: 0;">${demographicData.topDevice}</p>
-            <p style="margin: 0; font-weight: bold; color: #007bff;">${
-              demographicData.topDevicePercentage
-            }%</p>
-          </div>
-        </div>
-      </div>
-
-      <div style="text-align: center; margin-bottom: 24px;">
-        <a href="${dashboardUrl}" style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 4px;">View Detailed Analytics</a>
-      </div>
+    
 
       <p style="font-size: 12px; color: #666666; margin-top: 24px;">Thank you for using Raffily for your raffle campaign. We hope it was a success for your business!</p>
     </div>
@@ -129,3 +92,29 @@ const generateRaffleResultsEmail = (props) => {
 };
 
 module.exports = generateRaffleResultsEmail;
+
+// <h3>Participant Demographics:</h3>
+// <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+//   <div style="flex: 1; background-color: #ffffff; border: 1px solid #cccccc; border-radius: 8px; padding: 16px;">
+//     <p style="margin: 0 0 8px 0; font-weight: bold;">Top Location</p>
+//     <div style="display: flex; justify-content: space-between; align-items: center;">
+//       <p style="margin: 0;">${demographicData.topLocation}</p>
+//       <p style="margin: 0; font-weight: bold; color: #007bff;">${
+//         demographicData.topLocationPercentage
+//       }%</p>
+//     </div>
+//   </div>
+//   <div style="flex: 1; background-color: #ffffff; border: 1px solid #cccccc; border-radius: 8px; padding: 16px;">
+//     <p style="margin: 0 0 8px 0; font-weight: bold;">Top Device</p>
+//     <div style="display: flex; justify-content: space-between; align-items: center;">
+//       <p style="margin: 0;">${demographicData.topDevice}</p>
+//       <p style="margin: 0; font-weight: bold; color: #007bff;">${
+//         demographicData.topDevicePercentage
+//       }%</p>
+//     </div>
+//   </div>
+// </div>
+
+// <div style="text-align: center; margin-bottom: 24px;">
+//   <a href="${dashboardUrl}" style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 4px;">View Detailed Analytics</a>
+// </div>

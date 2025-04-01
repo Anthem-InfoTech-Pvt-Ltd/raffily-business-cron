@@ -34,14 +34,8 @@ const generateRaffleWinnerEmail = (props) => {
       </div>
 
       <p style="font-size: 16px; line-height: 24px; margin: 16px 0;">
-        To claim your prize, please click the button below:
+        We will be intouch soon!
       </p>
-
-      <div style="text-align: center; margin: 24px 0;">
-        <a href="${claimUrl}" style="display: inline-block; padding: 12px 24px; background-color: #00B8A9; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 16px;">
-          Claim Your Prize
-        </a>
-      </div>
 
       <p style="font-size: 16px; line-height: 24px; margin: 16px 0;">
         If you have any questions about your prize or how to claim it, please contact ${merchantName} directly at 
