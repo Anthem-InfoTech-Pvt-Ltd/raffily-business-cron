@@ -193,7 +193,7 @@ async function processRaffles() {
                 );
               } else {
                 // Create the PaymentIntent using the default payment method
-                await stripe.paymentIntents.create({
+                const paymentIntent = await stripe.paymentIntents.create({
                   amount: totalCharge * 100, // Convert to smallest currency unit (pence)
                   currency: "gbp",
                   customer: stripeCustomerId, // Use the Stripe customer ID
@@ -207,6 +207,23 @@ async function processRaffles() {
                   `💳 Merchant charged ${totalCharge * 100} pence for raffle ${
                     raffle._id
                   }`
+                );
+
+                // Insert payment details into the billing collection
+                await billingCollection.insertOne({
+                  raffleId: raffle._id,
+                  paymentDetails: {
+                    paymentIntentId: paymentIntent.id,
+                    amount: totalCharge,
+                    currency: "GBP",
+                    status: paymentIntent.status,
+                  },
+                  totalEntries,
+                  createdAt: new Date(),
+                });
+
+                console.log(
+                  `✅ Payment details recorded for raffle ${raffle._id}`
                 );
               }
             } catch (error) {
