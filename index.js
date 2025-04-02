@@ -8,15 +8,13 @@ const generateRaffleWinnerEmail = require("./emailTemplates/raffle-winner");
 const generateRaffleResultsEmail = require("./emailTemplates/raffle-results");
 const { default: Stripe } = require("stripe");
 
+require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const stripe = new Stripe(
-  "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",
-  {
-    apiVersion: "2023-10-16",
-  }
-);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2023-10-16",
+});
 
 // MongoDB Connection
 const client = new MongoClient(
