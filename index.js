@@ -12,7 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const stripe = new Stripe(
-  "sk_test_51OZsFnSHVmksIjgkW3r9bAFSCZU4s7JiIK0dkKMjTQkzoCxCeN6AhRjpLTPviioRmvmc3QfTNefCF5wObcaN41Kl00XiyrfuQZ",
+  "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",
   {
     apiVersion: "2023-10-16",
   }
