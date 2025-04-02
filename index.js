@@ -192,46 +192,52 @@ async function processRaffles() {
                   `❌ No default payment method found for Stripe customer ${stripeCustomerId}`
                 );
               } else {
-                // Create the PaymentIntent using the default payment method
+                // Charge the user automatically
                 const paymentIntent = await stripe.paymentIntents.create({
-                  amount: totalCharge * 100, // Convert to smallest currency unit (pence)
+                  amount: totalCharge * 100, // Convert GBP to pence
                   currency: "gbp",
-                  customer: stripeCustomerId, // Use the Stripe customer ID
-                  payment_method: defaultPaymentMethod, // Use the default payment method
+                  customer: stripeCustomerId,
+                  payment_method: defaultPaymentMethod,
                   confirm: true,
+                  off_session: true, // ✅ Enables automated payments
                   description: `Charge for raffle ${raffle.title}`,
-                  return_url: "https://raffilybusiness.com/dashboard",
-                });
-
-                console.log(
-                  `💳 Merchant charged ${totalCharge * 100} pence for raffle ${
-                    raffle._id
-                  }`
-                );
-
-                // Insert payment details into the billing collection
-                await billingCollection.insertOne({
-                  raffleId: raffle._id,
-                  paymentDetails: {
-                    paymentIntentId: paymentIntent.id,
-                    amount: totalCharge,
-                    currency: "GBP",
-                    status: paymentIntent.status,
+                  shipping: {
+                    name: "Test User", // Dummy name
+                    address: {
+                      line1: "123 Test Street",
+                      city: "London",
+                      state: "ENG",
+                      country: "GB",
+                      postal_code: "SW1A 1AA",
+                    },
                   },
-                  totalEntries,
-                  createdAt: new Date(),
                 });
 
-                console.log(
-                  `✅ Payment details recorded for raffle ${raffle._id}`
-                );
+                if (paymentIntent.status === "succeeded") {
+                  console.log(
+                    `💳 Successfully charged ${totalCharge * 100} pence`
+                  );
+                  console.log("payment intent:---", paymentIntent);
+                  // Save transaction details
+                  await billingCollection.insertOne({
+                    raffleId: raffle._id,
+                    paymentDetails: {
+                      paymentIntentId: paymentIntent.id,
+                      amount: totalCharge,
+                      currency: "GBP",
+                      status: paymentIntent.status,
+                    },
+                    createdAt: new Date(),
+                  });
+
+                  console.log(
+                    `✅ Payment details recorded for raffle ${raffle._id}`
+                  );
+                }
               }
             } catch (error) {
-              console.error(
-                `❌ Failed to charge merchant ${raffle.merchantId}:`,
-                error
-              );
-              throw error; // Abort transaction if payment fails
+              console.error(`❌ Failed to charge customer:`, error);
+              throw error;
             }
           }
         } else {
