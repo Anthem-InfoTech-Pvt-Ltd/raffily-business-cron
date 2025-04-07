@@ -11,7 +11,7 @@ const { default: Stripe } = require("stripe");
 require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
-
+console.log(process.env.STRIPE_SECRET_KEY);
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
 });
@@ -87,8 +87,11 @@ async function calculateAdditionalCharges(raffleId) {
 async function processRaffles() {
   try {
     await client.connect();
-    const currentTime = new Date();
-
+    const currentTime = new Date().toISOString();
+    const olderraffles = await rafflesCollection
+      .find({ status: "active", endDate: { $lte: currentTime } })
+      .toArray();
+    console.log(`🔍 Found ${olderraffles.length} expired raffles.`);
     const expiredRaffles = await rafflesCollection
       .find({ status: "active", endDate: { $lte: currentTime } })
       .toArray();
