@@ -31,8 +31,8 @@ const usersCollection = db.collection("users");
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   auth: {
-    user: "neeraj@antheminfotech.com", // Your email address
-    pass: "pcwgfixsrnvingtv", // Your email password or app-specific password
+    user: "hello@raffily.co.uk", // Your email address
+    pass: "vipmdlkuuggluhmg", // Your email password or app-specific password
   },
 });
 
@@ -40,7 +40,7 @@ const transporter = nodemailer.createTransport({
 async function sendEmail(to, subject, html) {
   try {
     await transporter.sendMail({
-      from: "neeraj@antheminfotech.com",
+      from: "hello@raffily.co.uk",
       to,
       subject,
       html, // Use HTML content instead of plain text
