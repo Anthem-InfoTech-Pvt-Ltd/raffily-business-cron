@@ -17,10 +17,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 // MongoDB Connection
-const client = new MongoClient(
-  "mongodb+srv://ben:2qOXsIvFGqDs3tk6@cluster0.wla45.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-);
-const db = client.db("raffily");
+const client = new MongoClient(process.env.MONGO_URI);
+const db = client.db(process.env.DB_NAME);
 const rafflesCollection = db.collection("raffles");
 const entriesCollection = db.collection("entries");
 const winnersCollection = db.collection("winners");
