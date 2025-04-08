@@ -85,14 +85,16 @@ async function calculateAdditionalCharges(raffleId) {
 async function processRaffles() {
   try {
     await client.connect();
-    const currentTime = new Date().toISOString();
-    const olderraffles = await rafflesCollection
-      .find({ status: "active", endDate: { $lte: currentTime } })
-      .toArray();
-    console.log(`🔍 Found ${olderraffles.length} expired raffles.`);
-    const expiredRaffles = await rafflesCollection
-      .find({ status: "active", endDate: { $lte: currentTime } })
-      .toArray();
+    const currentTime = new Date();
+      const expiredRaffles = await rafflesCollection
+    .find({
+      status: "active",
+      $or: [
+        { endDate: { $lte: currentTime } },
+        { endDate: { $lte: currentTime.toISOString() } }, // Check ISO string format as well
+      ],
+    })
+    .toArray();
     console.log(`🔍 Found ${expiredRaffles.length} expired raffles.`);
     for (const raffle of expiredRaffles) {
       console.log(`🎉 Processing raffle ${raffle._id}`);
