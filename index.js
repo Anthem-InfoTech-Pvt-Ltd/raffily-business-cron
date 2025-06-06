@@ -86,15 +86,15 @@ async function processRaffles() {
   try {
     await client.connect();
     const currentTime = new Date();
-      const expiredRaffles = await rafflesCollection
-    .find({
-      status: "active",
-      $or: [
-        { endDate: { $lte: currentTime } },
-        { endDate: { $lte: currentTime.toISOString() } }, // Check ISO string format as well
-      ],
-    })
-    .toArray();
+    const expiredRaffles = await rafflesCollection
+      .find({
+        status: "active",
+        $or: [
+          { endDate: { $lte: currentTime } },
+          { endDate: { $lte: currentTime.toISOString() } }, // Check ISO string format as well
+        ],
+      })
+      .toArray();
     console.log(`🔍 Found ${expiredRaffles.length} expired raffles.`);
     for (const raffle of expiredRaffles) {
       console.log(`🎉 Processing raffle ${raffle._id}`);
@@ -124,49 +124,6 @@ async function processRaffles() {
           const totalEntries = await entriesCollection.countDocuments(
             { raffleId: raffle._id },
             { session }
-          );
-          // Generate and send email to the winner
-          const winnerEmailContent = generateRaffleWinnerEmail({
-            name:
-              `${winnerEntry.firstName} ${winnerEntry.lastName}` ||
-              "Valued Customer",
-            raffleName: raffle?.title || "Raffle",
-            merchantName: merchantUser?.firstName || "Merchant",
-            prize: raffle?.prize || "Prize",
-            claimUrl: `https://www.raffilybusiness.com/claim-prize/${raffle._id}`,
-            contactEmail: merchantUser?.email || "support@raffilybusiness.com",
-          });
-
-          await sendEmail(
-            winnerEntry?.email || "support@raffilybusiness.com",
-            "🎉 Congratulations! You won the raffle!",
-            winnerEmailContent
-          );
-
-          // Generate and send email to the merchant
-          const merchantEmailContent = generateRaffleResultsEmail({
-            name:
-              `${merchantUser?.firstName} ${merchantUser?.lastName}` ||
-              "Merchant",
-            businessName: merchantUser?.businessName || "Raffily Business",
-            raffleName: raffle?.title || "Raffle",
-            dashboardUrl: `https://www.raffilybusiness.com/dashboard`,
-            totalEntries: raffle?.maxTickets || 0,
-            viewsToEntryRate: `${totalEntries}` || "0",
-            winnerName:
-              `${winnerEntry.firstName} ${winnerEntry.lastName}` || "Winner",
-            winnerEmail: winnerEntry?.email || "Not provided",
-            demographicData: raffle?.demographicData || {},
-            previousRaffleEntries: raffle?.previousRaffleEntries || 0,
-            createNewRaffleUrl: `https://raffilybusiness.com/${
-              merchantUser?._id || "default"
-            }/${raffle?._id}`,
-          });
-
-          await sendEmail(
-            merchantUser?.email || "support@raffilybusiness.com",
-            "🏆 Raffle Results Summary",
-            merchantEmailContent
           );
 
           const entryCharge = totalEntries * 0.25;
@@ -231,6 +188,53 @@ async function processRaffles() {
                     createdAt: new Date(),
                   });
 
+                  // Generate and send email to the winner
+                  const winnerEmailContent = generateRaffleWinnerEmail({
+                    name:
+                      `${winnerEntry.firstName} ${winnerEntry.lastName}` ||
+                      "Valued Customer",
+                    raffleName: raffle?.title || "Raffle",
+                    merchantName: merchantUser?.firstName || "Merchant",
+                    prize: raffle?.prize || "Prize",
+                    claimUrl: `https://www.raffilybusiness.com/claim-prize/${raffle._id}`,
+                    contactEmail:
+                      merchantUser?.email || "support@raffilybusiness.com",
+                  });
+
+                  await sendEmail(
+                    winnerEntry?.email || "support@raffilybusiness.com",
+                    "🎉 Congratulations! You won the raffle!",
+                    winnerEmailContent
+                  );
+
+                  // Generate and send email to the merchant
+                  const merchantEmailContent = generateRaffleResultsEmail({
+                    name:
+                      `${merchantUser?.firstName} ${merchantUser?.lastName}` ||
+                      "Merchant",
+                    businessName:
+                      merchantUser?.businessName || "Raffily Business",
+                    raffleName: raffle?.title || "Raffle",
+                    dashboardUrl: `https://www.raffilybusiness.com/dashboard`,
+                    totalEntries: raffle?.maxTickets || 0,
+                    viewsToEntryRate: `${totalEntries}` || "0",
+                    winnerName:
+                      `${winnerEntry.firstName} ${winnerEntry.lastName}` ||
+                      "Winner",
+                    winnerEmail: winnerEntry?.email || "Not provided",
+                    demographicData: raffle?.demographicData || {},
+                    previousRaffleEntries: raffle?.previousRaffleEntries || 0,
+                    createNewRaffleUrl: `https://raffilybusiness.com/${
+                      merchantUser?._id || "default"
+                    }/${raffle?._id}`,
+                  });
+
+                  await sendEmail(
+                    merchantUser?.email || "support@raffilybusiness.com",
+                    "🏆 Raffle Results Summary",
+                    merchantEmailContent
+                  );
+
                   console.log(
                     `✅ Payment details recorded for raffle ${raffle._id}`
                   );
@@ -238,6 +242,24 @@ async function processRaffles() {
               }
             } catch (error) {
               console.error(`❌ Failed to charge customer:`, error);
+              
+              // Send payment failure email to merchant
+              const paymentFailureEmail = `
+                <h2>Payment Failed for Raffle: ${raffle.title}</h2>
+                <p>Dear ${merchantUser?.firstName || 'Merchant'},</p>
+                <p>The payment for your raffle "${raffle.title}" has been declined.</p>
+                <p>To complete the raffle and receive the results, please update your payment method in your dashboard.</p>
+                <p>Total amount to be charged: £${totalCharge}</p>
+                <p><a href="https://www.raffilybusiness.com/dashboard/payment-settings">Update Payment Method</a></p>
+                <p>Best regards,<br>Raffily Team</p>
+              `;
+              
+              await sendEmail(
+                merchantUser?.email || "support@raffilybusiness.com",
+                "❌ Raffle Payment Failed - Action Required",
+                paymentFailureEmail
+              );
+              
               throw error;
             }
           }
@@ -284,57 +306,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
 
-// Function to Send Demo Emails
-// async function sendDemoEmails() {
-//   try {
-//     // Generate dynamic content for the winner email
-//     const winnerEmailContent = generateRaffleWinnerEmail({
-//       name: "John Doe",
-//       raffleName: "Mega Giveaway",
-//       merchantName: "Tech Corp",
-//       prize: "iPhone 14 Pro",
-//       claimUrl: "https://example.com/claim-prize",
-//       contactEmail: "support@techcorp.com",
-//     });
 
-//     // Send the winner email
-//     await sendEmail(
-//       "kavita@antheminfotech.com",
-//       "🎉 Congratulations! You won the raffle!",
-//       winnerEmailContent
-//     );
-//     console.log("📧 Demo winner email sent!");
-
-//     // Generate dynamic content for the merchant email
-//     const merchantEmailContent = generateRaffleResultsEmail({
-//       name: "Jane Smith",
-//       businessName: "Tech Corp",
-//       raffleName: "Mega Giveaway",
-//       dashboardUrl: "https://example.com/dashboard",
-//       totalEntries: 500,
-//       viewsToEntryRate: 25,
-//       winnerName: "John Doe",
-//       winnerEmail: "winner@example.com",
-//       demographicData: {
-//         topLocation: "New York",
-//         topLocationPercentage: 40,
-//         topDevice: "Mobile",
-//         topDevicePercentage: 60,
-//         topReferrer: "Google",
-//         topReferrerPercentage: 50,
-//       },
-//       previousRaffleEntries: 400,
-//       createNewRaffleUrl: "https://example.com/create-raffle",
-//     });
-
-//     // Send the merchant email
-//     await sendEmail(
-//       "neeraj@antheminfotech.in",
-//       "🏆 Raffle Results Summary",
-//       merchantEmailContent
-//     );
-//     console.log("📧 Demo merchant email sent!");
-//   } catch (error) {
-//     console.error("❌ Error sending demo emails:", error);
-//   }
-// }
