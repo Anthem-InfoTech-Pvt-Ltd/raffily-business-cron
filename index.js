@@ -17,6 +17,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 // MongoDB Connection
+// adding check
 const client = new MongoClient(process.env.MONGO_URI);
 const db = client.db(process.env.DB_NAME);
 const rafflesCollection = db.collection("raffles");
