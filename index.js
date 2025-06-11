@@ -254,11 +254,11 @@ async function processRaffles() {
                 <p>Best regards,<br>Raffily Team</p>
               `;
               
-              await sendEmail(
-                merchantUser?.email || "support@raffilybusiness.com",
-                "❌ Raffle Payment Failed - Action Required",
-                paymentFailureEmail
-              );
+              // await sendEmail(
+              //   merchantUser?.email || "support@raffilybusiness.com",
+              //   "❌ Raffle Payment Failed - Action Required",
+              //   paymentFailureEmail
+              // );
               
               throw error;
             }
