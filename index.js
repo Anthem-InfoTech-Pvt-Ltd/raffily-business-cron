@@ -242,25 +242,31 @@ async function processRaffles() {
               }
             } catch (error) {
               console.error(`❌ Failed to charge customer:`, error);
-              
-              // Send payment failure email to merchant
-              const paymentFailureEmail = `
-                <h2>Payment Failed for Raffle: ${raffle.title}</h2>
-                <p>Dear ${merchantUser?.firstName || 'Merchant'},</p>
-                <p>The payment for your raffle "${raffle.title}" has been declined.</p>
-                <p>To complete the raffle and receive the results, please update your payment method in your dashboard.</p>
-                <p>Total amount to be charged: £${totalCharge}</p>
-                <p><a href="https://www.raffilybusiness.com/dashboard/payment-settings">Update Payment Method</a></p>
-                <p>Best regards,<br>Raffily Team</p>
-              `;
-              
-              // await sendEmail(
-              //   merchantUser?.email || "support@raffilybusiness.com",
-              //   "❌ Raffle Payment Failed - Action Required",
-              //   paymentFailureEmail
-              // );
-              
-              throw error;
+
+              if (merchantUser?.isPaymentVerified) {
+                // Send payment failure email to merchant
+                const paymentFailureEmail = `
+      <h2>Payment Failed for Raffle: ${raffle.title}</h2>
+      <p>Dear ${merchantUser?.firstName || "Merchant"},</p>
+      <p>The payment for your raffle "${raffle.title}" has been declined.</p>
+      <p>To complete the raffle and receive the results, please update your payment method in your dashboard.</p>
+      <p>Total amount to be charged: £${totalCharge}</p>
+      <p><a href="https://www.raffilybusiness.com/dashboard/payment-settings">Update Payment Method</a></p>
+      <p>Best regards,<br>Raffily Team</p>
+    `;
+
+                await sendEmail(
+                  merchantUser?.email || "support@raffilybusiness.com",
+                  "❌ Raffle Payment Failed - Action Required",
+                  paymentFailureEmail
+                );
+
+                // Update payment verification status
+                await usersCollection.updateOne(
+                  { _id: merchantUser._id },
+                  { $set: { isPaymentVerified: false } }
+                );
+              }
             }
           }
         } else {
@@ -305,5 +311,3 @@ app.get("/", (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
-
-
