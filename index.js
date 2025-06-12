@@ -267,6 +267,8 @@ async function processRaffles() {
                   { $set: { isPaymentVerified: false } }
                 );
               }
+              console.error(`❌ Error processing raffle ${raffle._id}:`, error);
+              await session.abortTransaction();
             }
           }
         } else {
